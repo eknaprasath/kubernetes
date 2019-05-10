@@ -7,3 +7,5 @@ kubectl describe rs/frontend
 
 scaling replicaset
 kubectl scale rs/frontend --replicas=4
+
+kubectl delete rs/frontend
