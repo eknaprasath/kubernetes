@@ -2,7 +2,7 @@ kubectl get nodes
 
 kubectl get pods --all-namespaces -o wide
 
-Replicaset
+Replicaset - missing features are high availability and scalability
 kubectl describe rs/frontend
 
 scaling replicaset
