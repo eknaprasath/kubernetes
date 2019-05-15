@@ -16,3 +16,27 @@ scaling replicaset
 kubectl scale rs/frontend --replicas=4
 
 kubectl delete rs/frontend
+
+replicaset missing high availability & scalability for that we need deployment
+
+
+
+k create -f services.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-awesome-service
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 32768
+      targetPort: 80
+      
+ kubectl get svc
+ kubectl get services
+ kubectl describe service my-awesome-service
+ 
+ curl to the cluster IP
