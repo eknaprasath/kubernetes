@@ -1,3 +1,10 @@
+kubectl get namespaces
+
+kubectl create namespace podexample
+
+kubectl --namespace=podexample get pods
+kubectl --namespace=podexample delete pod examplepod
+kubectl --namespace=podexample get pods -o wide
 kubectl get nodes
 
 kubectl get pods --all-namespaces -o wide
