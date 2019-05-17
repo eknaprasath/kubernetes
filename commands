@@ -10,6 +10,41 @@ kubectl get nodes
 kubectl get pods --all-namespaces -o wide
 
 Replicaset - missing features are high availability and scalability
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend
+  labels:
+    app: nginx
+    tier: frontend
+spec:
+  #modify replicas according to your case
+  replicas: 2
+  selector:
+    matchLabels:
+      tier: frontend
+    matchExpressions:
+      - {key: tier, operator: In, values: [frontend]}
+  template:
+    metadata:
+      labels:
+        app: nginx
+        tier: frontend
+    spec:
+      containers:
+        - name: nginx
+          image: darealmc/nginx-k8s:v1
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+
 kubectl describe rs/frontend
 
 scaling replicaset
@@ -40,3 +75,32 @@ spec:
  kubectl describe service my-awesome-service
  
  curl to the cluster IP
+
+
+Deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: darealmc/nginx-k8s:v1
+          ports:
+            - containerPort: 80
+            
+            
+  
+  kubectl set image deployment.v1.apps/example-deployment nginx=darealmc/nginx-k8s:v2
