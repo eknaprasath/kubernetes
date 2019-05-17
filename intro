@@ -1,0 +1,37 @@
+What is kubernetes?
+
+   Kubernetes is a tool for automated management of containerized applications, 
+   also known as a container orchestration tool.
+   More detail: https://kubernetes.io/
+   
+   Automate your application infrastructure and make it easy to manage
+   
+What are containers?
+
+   Kubernetes is all about managing containers
+   
+   Containers wrap software in independent, portable packages, making it easy
+   to quickly run software in a variety of environment. when you wrap your software
+   in a container, you can quickly and easily run it anywhere. that makes containers great for automation.
+   
+   containers are a bit like VM, but they are smaller and start up faster. this means that 
+   automation can move quickly and efficiently with containers
+   
+   
+Orchestration
+
+   With containers, you can run a variety of software components across a cluster of generic servers.
+   
+   This can help ensure high availability and make it easier to scale resources.
+   
+   This raises some questions:
+     . How can i ensure that multiple instances of a piece of software are apread across
+       multiple servers for high availability
+     .  How can I deploy new code changes and roll them out across the entire cluster?
+     . How can i create new containers to handle additional load ( scale up )?
+     
+     of course, these kinds of tasks can all be done manually , but that is a lot of work
+     
+     The answer is to use an orchestration tool to automate these kinds of management tasks.
+     That is what kubernetes done.
+   
