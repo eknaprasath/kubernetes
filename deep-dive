@@ -148,3 +148,59 @@ Check the status of the kubelet service:
 sudo systemctl status kubelet
 
 
+KUBNERNETES DEPLOYMENTS
+
+Pods are a great way to organize and manage containers, but what if i what to spin up and automate
+multiple pods?
+
+Deployments are a great way to automate the management of your pods. A deployment allow you to specify a Desired state 
+for a set of pods. The cluster will then constantly work to maintain that desired state.
+
+For example:
+
+  . Scaling: With a deployment you can specify the number of replicas you want, and the deployment will create
+  (or remove) pods to meet that number of replicas.
+  . Rolling Updates: With a deployment, you can change the deployment container image to a new version of image.
+  The deployment will gradually replace existiing containers with the new verwion.
+  . Self-Healing: If one of the pods in the deployment is accidentally destroyed, the deployment will immediatly spin up 
+  a new to replace it
+
+Create a deployment:
+cat <<EOF | kubectl create -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.15.4
+        ports:
+        - containerPort: 80
+EOF
+Get a list of deployments:
+kubectl get deployments
+Get more information about a deployment:
+kubectl describe deployment nginx-deployment
+Get a list of pods:
+kubectl get pods
+
+delete any one pod and verify.
+
+kubectl delete pod $pod-name
+
+kubectl get pods
+
+
+
