@@ -1,0 +1,14 @@
+Kubernetes is a powerful tool for managing and deploying microservice applications. In this lesson, we will deploy a microservice application consisting of multiple varied components to our cluster. We will also explore the application briefly in order to get a hands-on glimpse of what a microservice application might look like, and how it might run in a Kubernetes cluster.
+
+Here are the commands used in the demonstration to deploy the Stan's Robot Shop application:
+
+Clone the Git repository:
+cd ~/
+git clone https://github.com/linuxacademy/robot-shop.git
+Create a namespace and deploy the application objects to the namespace using the deployment descriptors from the Git repository:
+kubectl create namespace robot-shop
+kubectl -n robot-shop create -f ~/robot-shop/K8s/descriptors/
+Get a list of the application's pods and wait for all of them to finish starting up:
+kubectl get pods -n robot-shop -w
+Once all the pods are up, you can access the application in a browser using the public IP of one of your Kubernetes servers and port 30080:
+http://$kube_server_public_ip:30080
