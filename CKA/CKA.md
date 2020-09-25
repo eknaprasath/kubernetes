@@ -50,3 +50,11 @@ So for the commands I showed in the previous video to work you must specify the 
 
 kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 etcdctl get / --prefix --keys-only --limit=10 --cacert /etc/kubernetes/pki/etcd/ca.crt --cert /etc/kubernetes/pki/etcd/server.crt  --key /etc/kubernetes/pki/etcd/server.key" 
 
+
+KUBEAPI
+
+kubectl get nodes
+
+you run a kubectl command, the kubectl utility is infact reaching to the kube-apiserver.
+The kube-api server first authenticates the request and validates it. It then retrieves the data from the
+ETCD cluster and responds back with the requested information.
