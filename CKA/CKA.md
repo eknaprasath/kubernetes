@@ -58,3 +58,49 @@ kubectl get nodes
 you run a kubectl command, the kubectl utility is infact reaching to the kube-apiserver.
 The kube-api server first authenticates the request and validates it. It then retrieves the data from the
 ETCD cluster and responds back with the requested information.
+
+
+CREATION OF POD
+1. Request authenticate user
+2. Validate Request
+3. Retrieve data
+4. Update ETCD
+5. Scueduler
+6. Kubelet
+
+
+example of creating a pod when you do that as before the request is authenticated first and then validated. In this case, the API server creates a POD object without assigning it to a node, updates the information in the ETCD server updates the user that the POD has been created. The scheduler continuously monitors the API server and realizes that there is a new pod with no node
+
+assigned the scheduler identifies the right node to place the new POD on and communicates that back to the kube-apiserver.The API server then updates the information in the ETCD cluster. The API server then passes that information to the kubelet in appropriate worker node.
+
+The kubelet then creates the POD on the node and instructs the container runtime engine to deploy the application image. Once done, the kubelet updates the status back to the API server and the API server then updates the data back in the ETCD cluster. A similar pattern is followed every time a change is requested. The kube-apiserver is at the center of all the different tasks that needs to be performed to make a change in the cluster
+
+
+POD DEFINITION FILE LOCATED AT
+for kubeadm setup
+cat /etc/kubernetes/manifests/kube-apiserver.yaml
+
+non kubeadm setup
+cat /etc/systemd/system/kube-apiserver.service
+
+
+
+KUBE CONTROLLER MANAGER
+
+
+WATCH STATUS
+REMEDIATE SITUATION
+NODE MONITOR PERIOD = 5 SECONDS
+NODE MONITOR GRACE PERIOD = 40 SECONDS
+POD EVICTION TIMEOUT = 5 MINUTES
+
+Deployment-controller, Namespace-Controller, Endpoint-Controller, CronJob, Job-Controller, PV-Protection-Controller, Service-Account-Controller, Stateful-Set, ReplicaSet, Node-Controller, PV-Binder-Controller, Replication-controller.
+
+a controller is a process that continuously monitors the state of various components within the system and works towards bringing the whole system to the desired functioning state. For example the node controller is responsible for monitoring the status of the nodes and taking necessary actions to keep the application running. It does that through the kube-api server. The node controller checks the status of the nodes every 5 seconds. That way the node controller can monitor the health of the nodes if it stops receiving heartbeat from a node the node is marked as unreachable but it waits for 40 seconds before marking it unreachable after a node is marked unreachable it gives it five minutes to come back up if it doesn’t, it removes the PODs assigned to that node and provisions them on the healthy ones. If the PODs are part of a replica set the next controller is the replication controller. It is responsible for monitoring the status of replica sets and ensuring that the desired number of PODs are available at all times within the set. If a pod dies it creates another one. Now those were just two examples of controllers. There are many more such controllers available within kubernetes. Whatever concepts we have seen so far in kubernetes such as deployments, Services, namespaces, persistent volumes and whatever intelligence is built into these constructs it is implemented through these various controllers. As you can imagine this is kind of the brain behind a lot of things in kubernetes. Now how do you see these controllers and where are they located in your cluster. They're all packaged into a single process known as kubernetes controller manager. When you install the kubernetes controller manager the different controllers get installed as well. So how do you install and view the kubernetes Controller manager download the kube-controller-manager from the kubernetes release page. Extract it and run it as a service. When you run it as you can see there are a list of options provided this is where you provide additional options to customize your controller. Remember some of the default settings for node controller we discussed earlier such as the node monitor period the grace period and the eviction timeout. These go in here as options. There is an additional option called controllers that you can use to specify which controllers to enable. By default all of them are enabled but you can choose to enable a select few. So in case any of your controllers don't seem to work or exist this would be a good starting point to look at.
+
+DEFINITION FILE LOCATED AT
+for kubeadm setup
+cat /etc/kubernetes/manifests/kube-controller-manager.yaml
+
+for non-kubeadm setup
+cat /etc/systemd/system/kube-controller-manager.service
