@@ -140,3 +140,40 @@ KUBE PROXY
 Within a kubernetes cluster every pod can reach every other pod. This is accomplished by deploying a POD networking solution to the cluster. A POD network is an internal virtual network that spans across all the nodes in the cluster to which all the PODs connect to. Through this network are able to communicate with each other. There are many solutions available for deploying such a network. In this case I have a web application deployed on the first node and a database application deployed on the second. The web app can reach the database, simply by using the IP of the database POD. But there is no guarantee that the IP of the database part will always remain the same. If you've gone through the lecture on services as discussed in the beginners course you must know that a better way for the web application to access the database is using a service. So we create a service to expose the database application across the cluster. The web application can now access the database using the name of the service db. The service also gets an IP address assigned to it whenever a pod tries to reach the service using its IP or name it forwards the traffic to the back end pod. In this case the database. But what is this service and how does it get an IP? Does the service join the same POD Network? The service cannot join the pod network because the service is not an actual thing. It is not a container like pod so it doesn't have any interfaces or an actively listening process. It is a virtual component that only lives in the cabinet as memory. But then we also said that the service should be accessible across the cluster from any not. So how is that achieved? That’s where kube-proxy comes in. Kube-proxy is a process that runs on each node in the kubernetes cluster. Its job is to look for new services and every time a new service is created it creates the appropriate rules on each node to forward traffic to those services to the backend pods. One way it does this is using IPTABLES rules. In this case it creates an IP tables rule on each node in the cluster to forward traffic heading to the IP of the service which is 10.96.0.12 to the IP of the actual pod which is 10.32.0.15. So how kube-proxy configure the service We discuss a lot more about networking and services kube-proxy and POD networking. Later in this course again we have a large section just for networking. This is a high level overview for now. We will now see how to install kube-proxy. Download the kube-proxy binary from the kubernetes release page. Extract it and run it as a service. The kubeadm tool deploys kube-proxy as PODs on each node. In fact it is deployed as a daemon set, so a single POD is always deployed on each node in the cluster. Well if you don't know about daemon set yet don't worry we have a lecture on that coming up in this course. We have now covered a high-level overview of the various components in the kubernetes control plane.
 
 
+POD
+
+kubectl run nginx --image nginx
+kubectl get pods
+
+
+pod-definition.yml
+
+apiVersion: v1
+kind: Pod
+metedata: 
+  name: myapp-pod
+  labels:
+      app: myapp
+      type: front-end
+
+spec:
+  containers
+     - name: nginx-container
+       image: nginx
+
+
+kubectl create -f pod-definition.yml
+
+kubectl get pods
+kubectl describe pod myapp-pod
+
+
+KIND       VERSION
+
+Pod          V1
+Service      V1
+ReplicaSet APPS/V1
+Deployment APPS/V1
+
+
+
