@@ -177,3 +177,14 @@ Deployment APPS/V1
 
 
 
+kubectl run nginx --image=nginx
+kubectl get pods
+kubectl describe pod name-of-pod | grep -i image
+kubectl describe -o wide
+
+## Create yaml file from kubectl command
+
+kubectl run redis --image=redis123 --dry-run=client -o yaml > pod.yaml
+
+
+## Replication controller
