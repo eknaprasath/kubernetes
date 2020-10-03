@@ -51,7 +51,7 @@ So for the commands I showed in the previous video to work you must specify the 
 kubectl exec etcd-master -n kube-system -- sh -c "ETCDCTL_API=3 etcdctl get / --prefix --keys-only --limit=10 --cacert /etc/kubernetes/pki/etcd/ca.crt --cert /etc/kubernetes/pki/etcd/server.crt  --key /etc/kubernetes/pki/etcd/server.key" 
 
 
-KUBEAPI
+##KUBEAPI
 
 kubectl get nodes
 
@@ -60,7 +60,7 @@ The kube-api server first authenticates the request and validates it. It then re
 ETCD cluster and responds back with the requested information.
 
 
-CREATION OF POD
+##CREATION OF POD
 1. Request authenticate user
 2. Validate Request
 3. Retrieve data
@@ -85,7 +85,7 @@ cat /etc/systemd/system/kube-apiserver.service
 
 
 
-KUBE CONTROLLER MANAGER
+##KUBE CONTROLLER MANAGER
 
 
 WATCH STATUS
@@ -106,7 +106,7 @@ for non-kubeadm setup
 cat /etc/systemd/system/kube-controller-manager.service
 
 
-KUBE-SCHEDULER
+##KUBE-SCHEDULER
 we discussed that the kubernetes scheduler is responsible for scheduling pods on nodes.
 remember the scheduler is only responsible for deciding which pod goes on which node. It doesn’t actually place the pod on the nodes.
 
@@ -123,7 +123,7 @@ cat /etc/kubernetes/manifests/kube-scheduler.yaml
 
 
 
-KUBELET:
+##KUBELET:
 
  we discussed that the kubelet is like the captain on the ship. They lead all activities on a ship.
  
@@ -135,12 +135,12 @@ Monitor Node & PODs
 
 
 
-KUBE PROXY
+##KUBE PROXY
 
 Within a kubernetes cluster every pod can reach every other pod. This is accomplished by deploying a POD networking solution to the cluster. A POD network is an internal virtual network that spans across all the nodes in the cluster to which all the PODs connect to. Through this network are able to communicate with each other. There are many solutions available for deploying such a network. In this case I have a web application deployed on the first node and a database application deployed on the second. The web app can reach the database, simply by using the IP of the database POD. But there is no guarantee that the IP of the database part will always remain the same. If you've gone through the lecture on services as discussed in the beginners course you must know that a better way for the web application to access the database is using a service. So we create a service to expose the database application across the cluster. The web application can now access the database using the name of the service db. The service also gets an IP address assigned to it whenever a pod tries to reach the service using its IP or name it forwards the traffic to the back end pod. In this case the database. But what is this service and how does it get an IP? Does the service join the same POD Network? The service cannot join the pod network because the service is not an actual thing. It is not a container like pod so it doesn't have any interfaces or an actively listening process. It is a virtual component that only lives in the cabinet as memory. But then we also said that the service should be accessible across the cluster from any not. So how is that achieved? That’s where kube-proxy comes in. Kube-proxy is a process that runs on each node in the kubernetes cluster. Its job is to look for new services and every time a new service is created it creates the appropriate rules on each node to forward traffic to those services to the backend pods. One way it does this is using IPTABLES rules. In this case it creates an IP tables rule on each node in the cluster to forward traffic heading to the IP of the service which is 10.96.0.12 to the IP of the actual pod which is 10.32.0.15. So how kube-proxy configure the service We discuss a lot more about networking and services kube-proxy and POD networking. Later in this course again we have a large section just for networking. This is a high level overview for now. We will now see how to install kube-proxy. Download the kube-proxy binary from the kubernetes release page. Extract it and run it as a service. The kubeadm tool deploys kube-proxy as PODs on each node. In fact it is deployed as a daemon set, so a single POD is always deployed on each node in the cluster. Well if you don't know about daemon set yet don't worry we have a lecture on that coming up in this course. We have now covered a high-level overview of the various components in the kubernetes control plane.
 
 
-POD
+##POD
 
 kubectl run nginx --image nginx
 kubectl get pods
@@ -168,12 +168,12 @@ kubectl get pods
 kubectl describe pod myapp-pod
 
 
-KIND       VERSION
+###KIND       VERSION
 
-Pod          V1
-Service      V1
-ReplicaSet APPS/V1
-Deployment APPS/V1
+###Pod          V1
+###Service      V1
+###ReplicaSet APPS/V1
+###Deployment APPS/V1
 
 
 
@@ -187,4 +187,113 @@ kubectl describe -o wide
 kubectl run redis --image=redis123 --dry-run=client -o yaml > pod.yaml
 
 
-## Replication controller
+## Replication controller & replica set
+
+Both have the same purpose but they're not the same replication controller is the older technology that is being replaced by replicate set properly has said is the new recommended way to setup replication.
+  
+  selector is one of the major differences between replication controller and replica set the selector is not a required field in case of a replication controller 
+  It assumes it to be the same as the labels provided in the part definition file in case of replica set
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name:
+    app: myapp
+    type: front-end
+spec:
+ template:
+   metadata:
+     name: myapp-pod
+     labels:
+       app: myapp
+       type: frontent
+   spec:
+     containers:
+     - name: nginx-container
+       image: nginx
+ replicas: 3
+ 
+ 
+ kubectl create -f rc-definition.yml
+ kubectl get replicationcontroller
+ 
+ 
+ 
+## replicaset
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: myapp-replicaset
+  labels:
+      app: myapp
+      type: front-end
+spec:
+  template:
+     metadata:
+       name: myapp-pod
+       labels:
+           app: myapp
+           type: front-end
+     spec:
+       containers:
+       - name: nginx-container
+         image: nginx
+replicas: 3
+selector:
+   matchLabels:
+      type: front-end
+   
+
+kubectl get replicaset
+
+increase the number of replicas 
+method 1
+change replicas:3 to replicas: 6 and run the below command
+
+kubectl replace -f replicaset-definition.yml
+
+method 2
+kubectl scale --replicas=6 -f replicaset-definition.yml
+
+kubectl scale --replicas=6 replicaset myapp-replicaset
+
+
+kubectl delete replicaset myapp-replicaset
+
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: replicaset-1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        
+        
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: replicaset-2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
