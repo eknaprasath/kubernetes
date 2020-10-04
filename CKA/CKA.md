@@ -297,3 +297,188 @@ spec:
       containers:
       - name: nginx
         image: nginx
+        
+        
+## Deploymnet
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-deployment
+  labels:
+      app: myapp
+      type: front-end
+spec:
+  template:
+     metadata:
+       name: myapp-pod
+       labels:
+          app: myapp
+          type: front-end
+     spec:
+       containers:
+       - name: nginx-container
+         image: nginx
+  replicas: 3
+  selector:
+    matchLabels:
+       type: front-end
+       
+ kubectl create -f deployment-definition.yml
+ kubectl get deployments
+ kubectl get replicaset
+ kubectl get pods
+kubectl get all
+
+
+
+##Namespace
+
+default, kube-system, kube-public 
+
+Default namespace: will be created when cluster created and used for default resource creation 
+kube-system namespace: kubernetes will use this for DNS and network pods and service creation 
+kube-public namespace: this is where resources that should be made available to all users are created
+
+
+* Each of the namespaces can have its own set of policies that define who can do what
+* You can also assign quota of resources to each of these namespaces that way each name spaces is guranteed a certain amount and does not use more that it's allowed.
+
+
+Resources in the same namespace can reach the db service simply using the hostname for example
+
+mysql.connect("db-service")
+
+if pod from one namespace what to connect service in another namespace that can be like following
+
+mysql.connect("db-service.dev.svc.cluster.local")
+
+db-service--> service name
+dev--> namespace
+svc--> service
+cluster.local--> domain
+
+
+kubectl get pods --> which will only list the pods in default namespace
+kubectl get pods --namespace=kube-system --> which will list the pods in another namespace
+
+kubectl create -f pod-definition.yml --namespace=dev --> to create pod in particular namespace
+
+or 
+
+apiVersion: v1
+kind: Pod
+metedata: 
+  name: myapp-pod
+  namespace: dev
+  labels:
+      app: myapp
+      type: front-end
+
+spec:
+  containers
+     - name: nginx-container
+       image: nginx
+       
+       
+ 
+ 
+To create namespace
+
+apiVerion: v1
+kind: Namespace
+metadata:
+  name: dev
+  
+  
+  or
+  
+kubectl create namespace dev
+
+
+##To change the namespace context 
+
+kubectl config set-context $(kubectl config currnet context) --namespace=dev
+kubectl confit set-context $(kubectl config current context) --namespace=prod
+
+kubectl get pods --all-namespaces
+
+
+##Resource Quots
+
+apiVersion: v1
+kind: ResourceQuota
+metadata: 
+    name: conpute-quota
+    namespace: dev
+    
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "4"
+    requests.memory: 5Gi
+    limits.cpu: "10"
+    limits.memory: 10Gi
+    
+    
+Certification Tip!
+Here's a tip!
+
+
+
+As you might have seen already, it is a bit difficult to create and edit YAML files. Especially in the CLI. During the exam, you might find it difficult to copy and paste YAML files from browser to terminal. Using the kubectl run command can help in generating a YAML template. And sometimes, you can even get away with just the kubectl run command without having to create a YAML file at all. For example, if you were asked to create a pod or deployment with specific name and image you can simply run the kubectl run command.
+
+Use the below set of commands and try the previous practice tests again, but this time try to use the below commands instead of YAML files. Try to use these as much as you can going forward in all exercises
+
+Reference (Bookmark this page for exam. It will be very handy):
+
+https://kubernetes.io/docs/reference/kubectl/conventions/
+
+
+
+Create an NGINX Pod
+
+kubectl run --generator=run-pod/v1 nginx --image=nginx  ( generator deprecated )
+
+
+
+Generate POD Manifest YAML file (-o yaml). Don't create it(--dry-run)
+
+kubectl run --generator=run-pod/v1 nginx --image=nginx --dry-run -o yaml
+kubectl run nginx --image=nginx --dry-run=client -o yaml
+
+
+Create a deployment
+
+kubectl create deployment --image=nginx nginx
+
+
+
+Generate Deployment YAML file (-o yaml). Don't create it(--dry-run)
+
+kubectl create deployment --image=nginx nginx --dry-run -o yaml
+
+
+
+Generate Deployment YAML file (-o yaml). Don't create it(--dry-run) with 4 Replicas (--replicas=4)
+
+kubectl create deployment --image=nginx nginx --dry-run -o yaml > nginx-deployment.yaml
+
+Save it to a file, make necessary changes to the file (for example, adding more replicas) and then create the deployment.
+
+
+
+
+
+##sevices
+
+
+nodeport
+clusterip
+loadbalancer
+
+
+kubectl create -f service-definition.yml
+kubectl get services
+
+Nodeport uses "Algorighm: Random" "SessionAffinity: Yes"
