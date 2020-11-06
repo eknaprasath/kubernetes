@@ -163,3 +163,81 @@ if we want to place pod if the lable "key" exists then we need to use as folows
    
    
   There are two states in the lifecycle of a pod when considering node affinity during scheduling andduring execution during scheduling. Is the state where a pod does not exist and is created for the first time. We have no doubt that when a pod is first created the affinity rules specified are considered to place the pods on the right note. Now what if the nodes with matching labels are not available. For example we forgot to label the node as large. That is where the type of node affinity used comes into play. If you select the required type which is the first one the scheduler will mandate that the pod be placed on a node with a given affinity. Rules if it cannot find one the pod will not be scheduled. This type will be used in cases where the placement of the pod is crucial. If a matching node does not exist the pod will not be scheduled. But let's say the pod placement is less important than running the workload itself. In that case you could set it to preferred and in cases where a matching node is not found. The scheduler will simply ignore node affinity rules and place the card on any available note. This is a way of telling the scheduler hey try your best to place the pod on matching node but if you really cannot find one just plays it anywhere. The second part of the property or the other state is during execution during execution is the state where a part has been running and a change is made in the environment that affects node affinity such as a change in the label of a node. For example say an administrator removed the label we said earlier called size equals large from the node. Now what would happen to the pods that are running on the Node. As you can see the two types of node affinity available today has this value set too ignored which means pods will continue to run and any changes in node affinity will not impact them once they are scheduled. The new types expected in the future only have a difference in the during execution phase a new option called required during execution is introduced which will evict any pods that are running on notes that do not meet affinity rules. In the earlier example, a pod running on the large node will be evicted or terminated if the label large is removed from the node.
+
+
+
+
+RESOURCE REQUIREMENTS AND LIMITS
+
+RESOURCE REQUESTS
+
+   By default kubernetes will allocate 0.5 CPU and 256Mi Memory and max limit is 1 cCPU and 512 Mi
+   
+   
+ apiVersion: v1
+ kind: Pod
+ metadata:
+   name: simple-webapp-color
+   labels:
+     name: simple-webapp-color
+     
+ spec:
+   containers:
+   - name: simple-webapp-color
+     image: simple-webapp-color
+     ports:
+       - containerPort: 8080
+     resources:
+       requests:
+         memory: "1Gi"
+         cpu: 1
+       limits:
+          memory: "2Gi"
+          cpu: 2
+          
+          
+          
+    If a pod trying to use more CPU it will be throttled by the limit but it is not the same case with memory when a 
+    pod trying to use more memory than the limit continuously it will be terminated
+    
+    
+When a pod is created the containers are assigned a default CPU request of .5 and memory of 256Mi". For the POD to pick up those defaults you must have first set those as default values for request and limit by creating a LimitRange in that namespace.
+
+
+
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+spec:
+  limits:
+  - default:
+      memory: 512Mi
+    defaultRequest:
+      memory: 256Mi
+    type: Container
+https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/memory-default-namespace/
+
+
+
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-limit-range
+spec:
+  limits:
+  - default:
+      cpu: 1
+    defaultRequest:
+      cpu: 0.5
+    type: Container
+https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/cpu-default-namespace/
+
+
+
+References:
+
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource
+
+
+
