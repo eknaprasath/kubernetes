@@ -241,3 +241,44 @@ https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource
 
 
 
+DAEMON SETS
+
+we look at daemon Sets in Kubernetes. So far we have deployed various pods on different nodes in our cluster. With the help of replica sets and deployments we made sure multiple copies of our applications applications are made available across various different worker nodes. Daemon set are like replica sets, as in it helps you deploy multiple instances of pod. But it runs one copy of your pod on each node in your cluster. Whenever a new node is added to the cluster a replica of the pod is automatically added to that node and when a node is removed the pod is automatically removed. The demon set ensures that one copy of the pod is always present in all nodes in the cluster. So what are some use cases of daemonsets? Say you would like to deploy a monitoring agent or log collector on each of your nodes in the cluster so you can monitor your cluster better. Demon set is perfect for that as it can deploy your monitoring agent in the form of a pod in all the nodes in your cluster. Then, you don’t have to worry about adding/removing monitoring agents from these nodes when there are changes in your cluster. as the daemon set will take care of that for you. While discussing the kubernetes architecture we learned that one of the worker node components that is required on every node in the cluster is a kube-proxy. That is one good use case of daemon Sets. The kubeproxy component can be deployed as a daemon set in the cluster. Another use case is for networking. Networking solutions like weave net requires an agent to be deployed on each node in the cluster. We will discuss about networking concepts in much more detail later during this course but I just wanted to point it out here for now. Creating a DaemonSet is similar to the ReplicaSet creation process. It has nested pod specification under the template section and selectors to link the daemon set to the PODs. A daemonSet definition file has a similar structure. We start with apiVersion, kind, metadata and spec. The api version is apps/v1. Kind is DaemonSet instead of ReplicaSet. We will set the name to monitoring daemon. Under spec you have a selector and a pod specification template. It's almost exactly like ReplicaSet definition except that the kind is a demon set. Ensure the labels in the selector matches the ones in the pod template. Once ready create the daemonset using the kubectl create daemonset command. To view the created daemonset run the kubectl get daemonset command. And of course to view more details run the kubectl describe demonSet command. So how does a demon set work. How does it schedule pods on each node? and How does it ensure that every node has a pod? if you were asked to schedule a pod on each node in the cluster. how would you do it? In one of the previous lectures in this section. we discussed that we could set the nodeName property on the pod to bypass the scheduler and get the pod placed on a node directly. So that’s one approach. On each pod, set the nodeName property in its specification before it is created and when they are created, they automatically land on the respective nodes. So that’s how it used to be until kubernetes version v1.12. From v1.12 onwards the Daemon set uses the default scheduler and node affinity rules that we learned in one of the previous lectures to schedule pods on nodes.
+
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: monitoring-daemon
+spec:
+  selector:
+    matchLabels:
+	  app: montoring-agent
+  template:
+    metadata:
+	  labels:
+	    app: monitoring-agent
+    spec:
+	  containers:
+	  - name: monitoring-agent
+	    image: monitoring-agent
+
+
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: monitoring-daemon
+spec:
+  selector:
+     matchLabels:
+	   app: monitoring-agent
+	template:
+	  metadata:
+	    labels:
+		  app: monitoring-agent
+		
+	  spec:
+	    containers:
+		- name: monitoring-agent
+		  image: monitoring-agent
