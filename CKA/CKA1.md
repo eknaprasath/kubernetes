@@ -484,4 +484,30 @@ VOLUME
        
 SECRETS
 
+encrypt
   echo -n 'mysql' | base64
+  
+decrypt
+
+  echo -n 'bXlzcWW=' | base64 --decode
+  
+  
+    envFrom:
+      - secretRef:
+            name: app-secret
+	    
+SINGLE ENV	    
+    env:
+       - name: DB_PASSWORD
+         valueFrom:
+	   secretKeyRef:
+	      name: app-secret
+	      key: DB_Password
+	      
+	      
+VOLUME
+
+volumes:
+- name: app-secret-volume
+  secret:
+     secretName: app-secret
