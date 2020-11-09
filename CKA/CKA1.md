@@ -282,3 +282,206 @@ spec:
 	    containers:
 		- name: monitoring-agent
 		  image: monitoring-agent
+
+
+ROLLOUT
+
+we will talk about updates and rollbacks in a deployment before we look at how we upgrade our application. Let's trying to understand rollouts and versioning in a deployment when you first create a deployment it triggers a rollout a new rollout creates a new deployment revision let's call it revision 1 in the future when the application is upgraded meaning when the container version is updated to a new one a new rollout is triggered and a new deployment revision is created named revision 2. This helps us keep track of the changes made to our deployment and enables us to roll back to a previous version of deployment if necessary. You can see the status of your rollout by running the command: kubectl rollout status followed by the name of the deployment to see the revisions and history of rollout. run the command kubectl rollout history followed by the deployment name And this will show you the revisions and history of our deployment there are two types of deployment strategies. Say for example you have five replicas of your web application instance deployed. One way to upgrade these to a newer version is to destroy all of these and then create newer versions of application instances meaning first destroy the five running instances and then deploy five new instances of the new application version. The problem with this as you can imagine is that during the period after the older versions are down and before any newer version is up the application is down and inaccessible to users this strategy is known as the Recreate strategy, And thankfully this is not the default deployment strategy. The second strategy is where we did not destroy all of them at once. Instead we take down the older version and bring up a newer version one by one. This way the application never goes down and the upgrade is seamless. Remember if you do not specify a strategy while creating the deployment it will assume it to be rolling update. In other words rolling update is the default deployment strategy so we talked about upgrades. How exactly do you update your deployment when you say update. It could be different things such as updating your application version by updating the version of docker containers used, updating their labels or updating the number of replicas etc Since we already have a deployment definition file it is easy for us to modify this file once we make the necessary changes. we run the kubectl apply command to apply the changes. A new rollout is triggered and a new revision after deployment is created. But there is another way to do the same thing. You could use the kubectl set image command to update the image of your application. But remember doing it this way will result in the deployment definition file having a different configuration so you must be careful when using the same definition file to make changes in the future the difference between the recreate and rolling update strategies can also be seen when you view the deployments in detail. Run the kubectl describe deployment command to see detailed information regarding the deployments. You will notice when the recreate strategy was used. The events indicate that the old replica set was scaled down to zero first and then the new replica sets scaled up to five. However when the Rolling update strategy was used the old replicas set was scaled down one at a time simultaneously scaling up the new replica set one at a time let's look at how a deployment performs an upgrade under the hood when a new deployment is created say to deploy five replicas. it first creates a Replicaset automatically, which in turn creates the number of PODs required to meet the number of replicas. When you upgrade your application as we saw in the previous slide, the kubernetes deployment object creates a new replica set under the hood and starts deploying the containers there at the same time taking down the parts in the old replica set following a rolling update strategy. This can be seen when you try to list the replicasets using the kubectl get replicasets command. Here we see the old replicaset with 0 PODs and the new replicaset with 5 PODs. Say for instance once you upgrade your application you realize something is inferior right. Something's wrong with the new version of build. You used to upgrade so you would like to roll back your update kubernetes deployments allow you to roll back to a previous revision to undo a change. run the command kubectl rollout undo followed by the name of the deployment. The deployment will then destroy the PODs in the new replicaset and bring the older ones up in the old replicaset. And your application is back to its older format. When you compare the output of the kubectl get replicasets command, before and after the rollback, You will be able to notice this difference before the rollback. the first replicaset had 0 PODs and the new replicaset had 5 PODs and this is reversed after the rollback is finished. And finally let’s get back to one of the commands we ran initially when we learned about PODs for the first time. We used the kubectl run command to create a pod. This command in fact creates a deployment and not just a pod. This is why the output of the command says Deployment nginx created. This is another way of creating a deployment by only specifying the image name and not using a definition file the required replica set and parts are automatically created in the back end using a definition file is recommended though as you can save the file check it into the code repository and modify it later as required. To summarize the commands real quick, use the kubectl create command to create the deployment, get deployment command to list the deployments apply and set image commands to update the deployments and rollout status command to see the status of rollouts and rollout undo command to roll back a deployment. Operation.
+
+  kubectl rollout status deployment/myapp-deployment
+  
+  kubectl rollout history deployment/myapp-deployment
+  
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: myapp-deployment
+    labels:
+        app: myapp
+	type: front-end
+  spec:
+    template:
+       matadata: myapp-pod
+       labels:
+          app: myapp
+	  type: front-end
+       spec:
+          containers:
+	  - name: nginx-container
+	    image: nginx
+   replicas: 3
+   selector:
+      matchLabels:
+          type: front-end
+	  
+	  
+	  
+modify the file  and do the deployment multiple times
+
+kubectl apply -f deployment.yaml
+  
+  
+  
+ StrategyType:  Recreate  &  RollingUpdate
+ 
+ Recreate will bring down old deployment to 0 and it will create new deployment
+ 
+ Rolling update will bring one pod down and it will create new pod 
+ 
+ 
+ 
+ kubectl rollout undo deployment/myapp-deployment
+ 
+ 
+ 
+ ROLLOUT COMMANDS
+ 
+  Create   kubectl create -f deployment.yaml
+  
+  Get      kubectl get deployments
+  Update   kubectl apply -f deployment.yaml
+           kubectl set image deployment/myapp nginx=nginx:1.9.1
+  status   kubectl rollout status deployment/myapp
+           kubectl rollout history deployment/myapp
+  Rollback kubectl rollout undo deployment/myapp
+  
+  
+  
+  
+  COMMANDS AND ARGUMENTS
+  
+  apiVersion: v1
+  kind: Pod
+  metadata: 
+    name: ubuntu-sleeper-pod
+  spec:
+    containers:
+      - name: ubuntu-sleeper
+        image: ubuntu-sleeper
+	
+  
+  ENTRYPOINT ["sleep"]  ==  command: ["sleep2.0"]
+  entrypoint in docker is command in pod definition
+  
+  
+  CMD ["5"] == args: ["10"]
+  cmd in docker is args in pod definition
+  
+  
+  
+  ENVIRONMENT VARIABLES
+  
+  docker run -e APP_COLOR=pink simple-webapp-color
+  
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: simple-webapp-color
+  spec:
+    containers:
+    - name: simple-webapp-color
+      image: simple-webapp-color
+      ports:
+        - containerPort: 8080
+      env:
+        - name: APP_COLOR
+	  value: pink
+  
+  
+  
+  ENV VALUE TYPES
+  
+  PLAIN KEY VALUE    -->  env:
+                            - name: APP_COLOR
+			      value: pink
+			      
+  CONFIGMAP          -->  env:
+                            - name: APP_COLOR
+			      valueFrom:
+			          configMapKeyRef:
+				  
+  SECRETS            -->  env:
+                            - name: APP_COLOR
+			      valueFrom:
+			          secretKeyRef:
+				  
+				  
+				  
+				  
+ConfiMaps
+
+Imperative:  kubectl create configmap
+
+             kubectl create configmap <config-name>  --from-literal=<key>=<value>
+	     
+	     kubectl create configmap app-config --from-literal=APP_COLOR=blue
+	     
+	     with multiple values
+	     type 1
+	     kubectl create configmap app-config --from-literal=APP_COLOR=blue  \
+	                                         --from-literal=APP_MOD=prod
+						 
+	     type 2
+	      with config file
+	      kubectl create configmap <config-name> --from-file=<path-to-file>
+	      
+	      kuebctl create configmap app-config --from-file=app_config.properties
+
+Declarative: kubectl create -f
+
+           apiVersion: v1
+	   kind: ConfigMap
+	   metadata:
+	      name: app-config
+	   data:
+	      APP_COLOR: blue
+	      APP_MODE: prod
+	      
+	      
+	      
+	   kubectl get configmaps
+	   
+	   kubectl describe configmaps
+	   
+	   
+apiVersion: v1
+kind: Pod
+metadata:
+  name: simple-webapp-color
+  labels:
+    name: simple-webapp-color
+spec:
+   containers:
+   - name: simple-webapp-color
+     image: simple-webapp-color
+     ports:
+       - containerPort: 8080
+     envFrom:
+       - configMapRef:
+             name: app-config
+	     
+	     
+SINGLE ENV 
+
+    env:
+      - name: APP_COLOR
+        valueFrom:
+	   configMapKeyRef:
+	      name: app-config
+	      key: APP_COLOR
+	      
+	      
+VOLUME
+
+  volumes:
+  - name: app-config-volume
+    configMap:
+       name: app-config
+       
+       
+       
+       
+       
+SECRETS
+
+  echo -n 'mysql' | base64
